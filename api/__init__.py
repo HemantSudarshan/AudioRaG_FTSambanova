@@ -2,13 +2,9 @@
 AudioRAG API Module
 
 REST API layer with FastAPI.
+
+Note: Import app and router directly from api.routes to avoid circular dependencies.
+Example: from api.routes import app, router
 """
 
-from api.routes import router, app
-from api.middleware import setup_middleware
-
-__all__ = [
-    "router",
-    "app",
-    "setup_middleware",
-]
+__all__ = []
