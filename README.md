@@ -1,82 +1,214 @@
-# 🎧 AudioRAG: Audio-to-Insight
+# 🎧 AudioRAG Enterprise
+
+> AI-powered audio analytics platform with RAG-based conversational search
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-![AudioRAG Screenshot 1](https://github.com/user-attachments/assets/c24b612f-984b-4d48-84c0-10ed5d19207b)  
-![AudioRAG Screenshot 2](https://github.com/user-attachments/assets/407c2d36-4a0d-4147-ac5b-db6e71efd7bb)  
-![AudioRAG Screenshot 3](https://github.com/user-attachments/assets/8aa5d0ab-ea91-427f-aa41-7e765cfc336a)  
-![AI as Service Report](https://github.com/user-attachments/assets/d98080d4-d5cb-432d-994e-2e5f8e15529d)
+## 🚀 Features
+
+### Core Capabilities
+- 🎙️ **Audio Transcription** - Powered by AssemblyAI with speaker diarization
+- 🔍 **Semantic Search** - RAG over audio using Qdrant vector database
+- 💬 **Conversational AI** - SambaNova LLM for intelligent responses
+- 📊 **Analytics Dashboard** - Real-time usage metrics
+
+### Enterprise Features
+- 🔐 **Authentication** - JWT-based auth with RBAC (Admin/Analyst/Viewer)
+- 🏢 **Multi-Tenant** - Organization isolation with billing
+- 📝 **Audit Logs** - Compliance-ready audit trail
+- ⚡ **Caching** - Redis + LRU for low latency
+- 🚀 **REST API** - FastAPI endpoints with rate limiting
+- 📦 **Batch Processing** - Celery workers for bulk uploads
+- 🏥 **Domain Models** - Healthcare, Legal, Finance vocabularies
 
 ---
 
-## 📖 Overview
+## 📋 Quick Start
 
-**AudioRAG** is a cutting-edge AI-powered tool that converts audio content into actionable insights by combining transcription, speaker diarization, and natural language querying. This project, developed by **Hemant Sudarshan**  harnesses Retrieval-Augmented Generation (RAG) and SambaNova Systems’ advanced AI infrastructure for seamless audio analytics.
+### Prerequisites
+- Python 3.11+
+- Docker & Docker Compose
+- AssemblyAI API key
+- SambaNova API key (or OpenAI)
 
----
+### Installation
 
-## 🔍 Features
+```bash
+# Clone repository
+git clone https://github.com/HemantSudarshan/AudioRaG_FTSambanova.git
+cd AudioRaG_FTSambanova
 
-### 🎙️ Audio Ingestion
-- Supports **MP3**, **WAV**, and **M4A** formats  
-- Preprocessing includes **resampling**, **normalization**, and **mono conversion**
+# Create virtual environment
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
 
-### 📝 Transcription & Speaker Diarization
-- Powered by **AssemblyAI**  
-- Highly accurate transcription with multi-speaker identification
+# Install dependencies
+pip install -r requirements.txt
 
-### 🔄 RAG Framework
-- Natural language querying over audio content with:  
-  - **Qdrant** for vector-based semantic search  
-  - **SambaNova GPT-3.5** for context-aware generative responses
+# Configure environment
+cp env.example .env
+# Edit .env with your API keys
+```
 
-### 🧩 Text Chunking & Embedding
-- Transcripts segmented into semantic chunks  
-- Embeddings created with **OpenAI** / **HuggingFace** models  
-- Stored efficiently in **Qdrant**
+### Start Services
 
-### 🖥️ User Interface
-- Built with **Streamlit**  
-- Features intuitive:  
-  - Audio upload  
-  - Transcript viewing  
-  - Query interface  
-  - Debugging tools
+```bash
+# Start infrastructure
+docker-compose up -d qdrant redis postgres
 
-### ✍️ Manual Overrides
-- Customize diarization by specifying speaker counts  
-- Review and correct diarization outputs for accuracy
+# Run Streamlit app
+streamlit run app.py
 
-### ⏰ Timestamp Filtering
-- Enables time-based search functionality  
-- Generates session logs for streamlined analysis
+# Or run enterprise version
+streamlit run app_enterprise.py
+```
 
----
+### Run API Server
 
-## 📌 Applications
-
-| Use Case             | Description                                      |
-|----------------------|------------------------------------------------|
-| 🎙️ Journalism & Media   | Transcribe interviews and podcasts with speaker attribution |
-| ⚖️ Legal & Compliance   | Convert courtroom or deposition recordings into searchable transcripts |
-| 📞 Customer Support     | Analyze call interactions for insights and quality assurance |
-| 🏢 Corporate Meetings   | Summarize discussions and track follow-up tasks |
-| 🎓 Research & Academia  | Query and analyze lectures or interviews easily |
+```bash
+uvicorn api:app --reload --port 8000
+# Visit http://localhost:8000/api/docs
+```
 
 ---
 
-## 🛠️ Tech Stack
+## 🏗️ Architecture
 
-| Component         | Technology Used         |
-|-------------------|------------------------|
-| Programming       | Python                 |
-| Transcription     | AssemblyAI             |
-| Semantic Search   | Qdrant                 |
-| Embeddings        | OpenAI / HuggingFace   |
-| LLM Responses     | SambaNova GPT-3.5      |
-| User Interface    | Streamlit              |
-| Audio Processing  | Librosa / Pydub        |
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Client Layer                         │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐   │
+│  │  Streamlit   │ │   REST API   │ │  WebSocket   │   │
+│  │     UI       │ │  (FastAPI)   │ │  Streaming   │   │
+│  └──────────────┘ └──────────────┘ └──────────────┘   │
+└─────────────────────────────────────────────────────────┘
+                          │
+┌─────────────────────────────────────────────────────────┐
+│                 Processing Layer                        │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐   │
+│  │  AssemblyAI  │ │   BGE-Large  │ │   SambaNova  │   │
+│  │ Transcription│ │  Embeddings  │ │     LLM      │   │
+│  └──────────────┘ └──────────────┘ └──────────────┘   │
+└─────────────────────────────────────────────────────────┘
+                          │
+┌─────────────────────────────────────────────────────────┐
+│                    Data Layer                           │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐   │
+│  │    Qdrant    │ │    Redis     │ │  PostgreSQL  │   │
+│  │   Vectors    │ │    Cache     │ │   Metadata   │   │
+│  └──────────────┘ └──────────────┘ └──────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
 
 ---
 
-Download the embedding model from https://www.mediafire.com/folder/41tpj4qu5ltyd/hf_cache, extract it into the hf_cache folder in the project directory, and then run app.py.
+## 📁 Project Structure
+
+```
+AudioRaG_FTSambanova/
+├── app.py                  # Main Streamlit app
+├── app_enterprise.py       # Enterprise version with auth
+├── rag_code.py            # Core RAG logic
+├── config.py              # Configuration management
+├── test_modules.py        # Test script
+│
+├── auth/                  # Authentication & RBAC
+├── api/                   # REST API & streaming
+├── batch/                 # Background processing
+├── cache/                 # Caching layer
+├── database/              # SQLAlchemy models
+├── tenants/               # Multi-tenancy
+├── models/                # Domain models
+├── monitoring/            # Health checks
+├── audit/                 # Audit logging
+├── analytics/             # Usage metrics
+│
+├── docs/                  # Documentation
+│   ├── PRD.md
+│   ├── ARCHITECTURE.md
+│   ├── API.md
+│   └── DEPLOYMENT.md
+│
+├── docker-compose.yml     # Multi-service setup
+├── Dockerfile             # Production container
+├── requirements.txt       # Dependencies
+└── env.example            # Environment template
+```
+
+---
+
+## 🔑 Environment Variables
+
+```env
+# Required
+ASSEMBLYAI_API_KEY=your_key
+SAMBANOVA_API_KEY=your_key
+
+# Optional
+QDRANT_URL=http://localhost:6333
+REDIS_URL=redis://localhost:6379
+DATABASE_URL=sqlite:///./audiorag.db
+```
+
+---
+
+## 📊 Supported Domains
+
+| Domain | Features |
+|--------|----------|
+| **Healthcare** | Medical vocabulary, HIPAA-ready, clinical prompts |
+| **Legal** | Legal terminology, case references, deposition analysis |
+| **Finance** | Financial metrics, compliance terms |
+| **Customer Service** | CSAT analysis, ticket tracking |
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run module tests
+python test_modules.py
+
+# Expected output:
+# ✅ Imports: PASS
+# ✅ Config: PASS
+# ✅ Auth: PASS
+# ...
+```
+
+---
+
+## 📖 Documentation
+
+- [Product Requirements](docs/PRD.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [API Reference](docs/API.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+
+---
+
+## 🏢 Enterprise Pricing
+
+| Plan | Audio Hours | Storage | Price |
+|------|-------------|---------|-------|
+| Free | 5/month | 1 GB | $0 |
+| Starter | 50/month | 25 GB | $49/mo |
+| Professional | 500/month | 100 GB | $199/mo |
+| Enterprise | Unlimited | Unlimited | Custom |
+
+---
+
+## 👤 Author
+
+**Hemant Sudarshan**
+
+---
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
